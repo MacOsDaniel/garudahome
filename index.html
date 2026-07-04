@@ -548,7 +548,6 @@ Procesado por ChatGPT
             updateDOM() {
                 this.clearTilesDOM();
                 
-                // Determinar el gap exacto basado en el ancho de pantalla para el cálculo absoluto
                 const isMobile = window.innerWidth <= 768;
                 const gap = isMobile ? 8 : 12;
                 
@@ -580,21 +579,26 @@ Procesado por ChatGPT
                 }
             }
 
+            // 0: arriba, 1: derecha, 2: abajo, 3: izquierda
             move(direction) {
                 let moved = false;
                 
-                // Rotar el tablero para unificar lógica hacia la izquierda
-                for (let i = 0; i < direction; i++) {
+                // Rotamos el tablero el número de veces necesario para procesar siempre un movimiento "hacia la izquierda"
+                // Mapeo corregido de ciclos de rotación de matrices de 90 grados:
+                // Izquierda (3) necesita 0 rotaciones. Arriba (0) necesita 1 rotación. Derecha (1) necesita 2 rotaciones. Abajo (2) necesita 3 rotaciones.
+                const rotations = (direction + 1) % 4;
+                
+                for (let i = 0; i < rotations; i++) {
                     this.board = this.rotateLeft(this.board);
                 }
                 
-                // Deslizar y fusionar
+                // Deslizar y fusionar filas hacia la izquierda
                 for (let r = 0; r < this.size; r++) {
                     let row = this.board[r].filter(val => val !== 0);
                     let newRow = [];
                     
                     for (let i = 0; i < row.length; i++) {
-                        if (row[i] === row[i + 1]) {
+                        if (i + 1 < row.length && row[i] === row[i + 1]) {
                             newRow.push(row[i] * 2);
                             this.score += row[i] * 2;
                             i++;
@@ -614,8 +618,9 @@ Procesado por ChatGPT
                     this.board[r] = newRow;
                 }
                 
-                // Restaurar rotación
-                for (let i = 0; i < (4 - direction) % 4; i++) {
+                // Devolvemos el tablero a su orientación original con la rotación inversa
+                const reverseRotations = (4 - rotations) % 4;
+                for (let i = 0; i < reverseRotations; i++) {
                     this.board = this.rotateLeft(this.board);
                 }
                 
