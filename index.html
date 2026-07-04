@@ -1,11 +1,3 @@
-<!--
-==========================================================
-GARUDA HOME
-Alpha 0.2 - Founders Edition
-Propietario: Edson Aguila
-Procesado por ChatGPT
-==========================================================
--->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -402,7 +394,6 @@ Procesado por ChatGPT
 </head>
 <body>
 
-    <!-- Navegación -->
     <nav>
         <div class="logo-container">
             <img src="https://garudahome.com/logo.png" alt="Garuda Propiedades Logo" class="logo-img">
@@ -414,7 +405,6 @@ Procesado por ChatGPT
         </ul>
     </nav>
 
-    <!-- Hero Section -->
     <header id="inicio">
         <img src="https://garudahome.com/logo.png" alt="Garuda Logo Grande" class="hero-logo">
         <h1 class="hero-title"><span>GARUDA HOME</span></h1>
@@ -422,7 +412,6 @@ Procesado por ChatGPT
         <a href="#juego" class="cta-btn">Jugar Garuda 2048</a>
     </header>
 
-    <!-- Features Section / Exclusividad -->
     <section class="features" id="propiedades">
         <h2 class="section-title">Garuda <span>Propiedades</span></h2>
         <div class="features-grid">
@@ -444,7 +433,6 @@ Procesado por ChatGPT
         </div>
     </section>
 
-    <!-- Game Section -->
     <section class="game-section" id="juego">
         <h2 class="section-title" style="margin-bottom: 1rem;">Garuda 2048</h2>
         <p style="color: #94a3b8; margin-bottom: 2.5rem; text-align: center; max-width: 550px; font-weight: 300; line-height: 1.6;">
@@ -471,13 +459,11 @@ Procesado por ChatGPT
             </div>
 
             <div class="grid-container" id="grid-container">
-                <!-- Capa estática de fondo -->
                 <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
                 <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
                 <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
                 <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
                 
-                <!-- Pantalla Game Over -->
                 <div class="game-message" id="game-message">
                     <p id="game-over-text">Fin del Juego</p>
                     <button class="restart-btn" id="retry-btn">Reintentar</button>
@@ -486,12 +472,10 @@ Procesado por ChatGPT
         </div>
     </section>
 
-    <!-- Footer -->
     <footer>
         <p>&copy; 2026 GARUDA PROPIEDADES. Todos los derechos reservados. Desarrollado en una sola pieza, responsivo y sin dependencias.</p>
     </footer>
 
-    <!-- JavaScript del Juego 2048 -->
     <script>
         class Game2048 {
             constructor() {
@@ -579,67 +563,70 @@ Procesado por ChatGPT
                 }
             }
 
-            // 0: arriba, 1: derecha, 2: abajo, 3: izquierda
+            // Motor de movimiento corregido sin rotaciones cruzadas aberrantes
             move(direction) {
                 let moved = false;
-                
-                // Rotamos el tablero el número de veces necesario para procesar siempre un movimiento "hacia la izquierda"
-                // Mapeo corregido de ciclos de rotación de matrices de 90 grados:
-                // Izquierda (3) necesita 0 rotaciones. Arriba (0) necesita 1 rotación. Derecha (1) necesita 2 rotaciones. Abajo (2) necesita 3 rotaciones.
-                const rotations = (direction + 1) % 4;
-                
-                for (let i = 0; i < rotations; i++) {
-                    this.board = this.rotateLeft(this.board);
-                }
-                
-                // Deslizar y fusionar filas hacia la izquierda
-                for (let r = 0; r < this.size; r++) {
-                    let row = this.board[r].filter(val => val !== 0);
-                    let newRow = [];
-                    
-                    for (let i = 0; i < row.length; i++) {
-                        if (i + 1 < row.length && row[i] === row[i + 1]) {
-                            newRow.push(row[i] * 2);
-                            this.score += row[i] * 2;
+                const size = this.size;
+
+                // Auxiliar para colapsar y combinar una sola línea hacia el inicio (estilo izquierda/arriba)
+                const slideAndMerge = (line) => {
+                    let arr = line.filter(val => val !== 0);
+                    let newLine = [];
+                    for (let i = 0; i < arr.length; i++) {
+                        if (i + 1 < arr.length && arr[i] === arr[i + 1]) {
+                            newLine.push(arr[i] * 2);
+                            this.score += arr[i] * 2;
                             i++;
                             moved = true;
                         } else {
-                            newRow.push(row[i]);
+                            newLine.push(arr[i]);
                         }
                     }
-                    
-                    while (newRow.length < this.size) {
-                        newRow.push(0);
+                    while (newLine.length < size) {
+                        newLine.push(0);
                     }
-                    
-                    if (JSON.stringify(this.board[r]) !== JSON.stringify(newRow)) {
-                        moved = true;
+                    return newLine;
+                };
+
+                // Guardamos estado anterior para verificar si realmente hubo cambios de posición
+                const previousBoard = JSON.stringify(this.board);
+
+                if (direction === 0) { // ARRIBA
+                    for (let c = 0; c < size; c++) {
+                        let column = [];
+                        for (let r = 0; r < size; r++) column.push(this.board[r][c]);
+                        let newColumn = slideAndMerge(column);
+                        for (let r = 0; r < size; r++) this.board[r][c] = newColumn[r];
                     }
-                    this.board[r] = newRow;
+                } 
+                else if (direction === 1) { // DERECHA
+                    for (let r = 0; r < size; r++) {
+                        let row = [...this.board[r]].reverse();
+                        let newRow = slideAndMerge(row).reverse();
+                        this.board[r] = newRow;
+                    }
+                } 
+                else if (direction === 2) { // ABAJO
+                    for (let c = 0; c < size; c++) {
+                        let column = [];
+                        for (let r = 0; r < size; r++) column.push(this.board[r][c]);
+                        column.reverse();
+                        let newColumn = slideAndMerge(column).reverse();
+                        for (let r = 0; r < size; r++) this.board[r][c] = newColumn[r];
+                    }
+                } 
+                else if (direction === 3) { // IZQUIERDA
+                    for (let r = 0; r < size; r++) {
+                        let row = [...this.board[r]];
+                        let newRow = slideAndMerge(row);
+                        this.board[r] = newRow;
+                    }
                 }
-                
-                // Devolvemos el tablero a su orientación original con la rotación inversa
-                const reverseRotations = (4 - rotations) % 4;
-                for (let i = 0; i < reverseRotations; i++) {
-                    this.board = this.rotateLeft(this.board);
-                }
-                
-                if (moved) {
+
+                if (moved || previousBoard !== JSON.stringify(this.board)) {
                     this.addRandomTile();
                     this.updateDOM();
                 }
-            }
-
-            rotateLeft(matrix) {
-                let rows = matrix.length;
-                let cols = matrix[0].length;
-                let grid = Array(cols).fill(null).map(() => Array(rows).fill(0));
-                for (let r = 0; r < rows; r++) {
-                    for (let c = 0; c < cols; c++) {
-                        grid[cols - 1 - c][r] = matrix[r][c];
-                    }
-                }
-                return grid;
             }
 
             isGameOver() {
