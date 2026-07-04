@@ -1,3 +1,11 @@
+<!--
+==========================================================
+GARUDA HOME
+Alpha 0.2 - Founders Edition
+Propietario: Edson Aguila
+Procesado por ChatGPT
+==========================================================
+-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -394,6 +402,7 @@
 </head>
 <body>
 
+    <!-- Navegación -->
     <nav>
         <div class="logo-container">
             <img src="https://garudahome.com/logo.png" alt="Garuda Propiedades Logo" class="logo-img">
@@ -405,6 +414,7 @@
         </ul>
     </nav>
 
+    <!-- Hero Section -->
     <header id="inicio">
         <img src="https://garudahome.com/logo.png" alt="Garuda Logo Grande" class="hero-logo">
         <h1 class="hero-title"><span>GARUDA HOME</span></h1>
@@ -412,6 +422,7 @@
         <a href="#juego" class="cta-btn">Jugar Garuda 2048</a>
     </header>
 
+    <!-- Features Section / Exclusividad -->
     <section class="features" id="propiedades">
         <h2 class="section-title">Garuda <span>Propiedades</span></h2>
         <div class="features-grid">
@@ -433,6 +444,7 @@
         </div>
     </section>
 
+    <!-- Game Section -->
     <section class="game-section" id="juego">
         <h2 class="section-title" style="margin-bottom: 1rem;">Garuda 2048</h2>
         <p style="color: #94a3b8; margin-bottom: 2.5rem; text-align: center; max-width: 550px; font-weight: 300; line-height: 1.6;">
@@ -459,11 +471,13 @@
             </div>
 
             <div class="grid-container" id="grid-container">
+                <!-- Capa estática de fondo -->
                 <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
                 <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
                 <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
                 <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
                 
+                <!-- Pantalla Game Over -->
                 <div class="game-message" id="game-message">
                     <p id="game-over-text">Fin del Juego</p>
                     <button class="restart-btn" id="retry-btn">Reintentar</button>
@@ -472,10 +486,12 @@
         </div>
     </section>
 
+    <!-- Footer -->
     <footer>
         <p>&copy; 2026 GARUDA PROPIEDADES. Todos los derechos reservados. Desarrollado en una sola pieza, responsivo y sin dependencias.</p>
     </footer>
 
+    <!-- JavaScript del Juego 2048 -->
     <script>
         class Game2048 {
             constructor() {
@@ -563,67 +579,72 @@
                 }
             }
 
-            // Motor de movimiento corregido sin rotaciones cruzadas aberrantes
+            // Nuevo enfoque basado en vectores exactos de dirección (0: Arriba, 1: Derecha, 2: Abajo, 3: Izquierda)
             move(direction) {
                 let moved = false;
-                const size = this.size;
-
-                // Auxiliar para colapsar y combinar una sola línea hacia el inicio (estilo izquierda/arriba)
-                const slideAndMerge = (line) => {
-                    let arr = line.filter(val => val !== 0);
-                    let newLine = [];
-                    for (let i = 0; i < arr.length; i++) {
-                        if (i + 1 < arr.length && arr[i] === arr[i + 1]) {
-                            newLine.push(arr[i] * 2);
-                            this.score += arr[i] * 2;
-                            i++;
-                            moved = true;
-                        } else {
-                            newLine.push(arr[i]);
-                        }
-                    }
-                    while (newLine.length < size) {
-                        newLine.push(0);
-                    }
-                    return newLine;
+                
+                // Mapeo directo de vectores [fila, columna]
+                const vectors = {
+                    0: { x: -1, y: 0 },  // Arriba
+                    1: { x: 0,  y: 1 },  // Derecha
+                    2: { x: 1,  y: 0 },  // Abajo
+                    3: { x: 0,  y: -1 }  // Izquierda
                 };
 
-                // Guardamos estado anterior para verificar si realmente hubo cambios de posición
-                const previousBoard = JSON.stringify(this.board);
+                const vector = vectors[direction];
+                
+                // Orden de recorrido óptimo según la dirección elegida
+                const traverseRows = direction === 2 ? [3, 2, 1, 0] : [0, 1, 2, 3];
+                const traverseCols = direction === 1 ? [3, 2, 1, 0] : [0, 1, 2, 3];
 
-                if (direction === 0) { // ARRIBA
-                    for (let c = 0; c < size; c++) {
-                        let column = [];
-                        for (let r = 0; r < size; r++) column.push(this.board[r][c]);
-                        let newColumn = slideAndMerge(column);
-                        for (let r = 0; r < size; r++) this.board[r][c] = newColumn[r];
-                    }
-                } 
-                else if (direction === 1) { // DERECHA
-                    for (let r = 0; r < size; r++) {
-                        let row = [...this.board[r]].reverse();
-                        let newRow = slideAndMerge(row).reverse();
-                        this.board[r] = newRow;
-                    }
-                } 
-                else if (direction === 2) { // ABAJO
-                    for (let c = 0; c < size; c++) {
-                        let column = [];
-                        for (let r = 0; r < size; r++) column.push(this.board[r][c]);
-                        column.reverse();
-                        let newColumn = slideAndMerge(column).reverse();
-                        for (let r = 0; r < size; r++) this.board[r][c] = newColumn[r];
-                    }
-                } 
-                else if (direction === 3) { // IZQUIERDA
-                    for (let r = 0; r < size; r++) {
-                        let row = [...this.board[r]];
-                        let newRow = slideAndMerge(row);
-                        this.board[r] = newRow;
+                // Matriz auxiliar para marcar qué celdas ya se fusionaron en este turno
+                let mergedThisTurn = Array(this.size).fill(null).map(() => Array(this.size).fill(false));
+
+                for (let r of traverseRows) {
+                    for (let c of traverseCols) {
+                        const val = this.board[r][c];
+                        
+                        if (val !== 0) {
+                            let currRow = r;
+                            let currCol = c;
+                            
+                            // Avanzar en la dirección elegida mientras esté libre dentro de los límites
+                            while (
+                                currRow + vector.x >= 0 && currRow + vector.x < this.size &&
+                                currCol + vector.y >= 0 && currCol + vector.y < this.size &&
+                                this.board[currRow + vector.x][currCol + vector.y] === 0
+                            ) {
+                                currRow += vector.x;
+                                currCol += vector.y;
+                            }
+
+                            // Comprobar si la siguiente celda tiene el mismo valor para fusionarse
+                            const nextRow = currRow + vector.x;
+                            const nextCol = currCol + vector.y;
+
+                            if (
+                                nextRow >= 0 && nextRow < this.size &&
+                                nextCol >= 0 && nextCol < this.size &&
+                                this.board[nextRow][nextCol] === val &&
+                                !mergedThisTurn[nextRow][nextCol]
+                            ) {
+                                // Fusión exitosa
+                                this.board[nextRow][nextCol] = val * 2;
+                                this.score += val * 2;
+                                this.board[r][c] = 0;
+                                mergedThisTurn[nextRow][nextCol] = true;
+                                moved = true;
+                            } else if (currRow !== r || currCol !== c) {
+                                // Mover a la posición vacía más lejana
+                                this.board[currRow][currCol] = val;
+                                this.board[r][c] = 0;
+                                moved = true;
+                            }
+                        }
                     }
                 }
 
-                if (moved || previousBoard !== JSON.stringify(this.board)) {
+                if (moved) {
                     this.addRandomTile();
                     this.updateDOM();
                 }
