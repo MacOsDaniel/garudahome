@@ -111,6 +111,7 @@
             height: 100%;
         }
 
+        /* ESTILOS CLAVE PARA EL EFECTO DE DESLIZAMIENTO */
         .tile {
             position: absolute;
             width: calc((100% - 60px) / 4);
@@ -122,7 +123,8 @@
             font-size: 2rem;
             font-weight: bold;
             color: #0f172a;
-            transition: top 0.1s ease-in-out, left 0.1s ease-in-out, transform 0.1s ease-in-out; 
+            /* Esta transición suaviza los cambios de coordenadas top y left */
+            transition: top 0.12s ease-in-out, left 0.12s ease-in-out, transform 0.1s ease-in-out; 
             transform: scale(1);
         }
 
@@ -224,6 +226,7 @@
     </div>
 
     <script>
+        // Clase constructora individual para persistir los elementos del DOM y permitir transiciones
         class Tile {
             constructor(row, col, value) {
                 this.row = row;
@@ -327,7 +330,7 @@
                 const traverseRows = direction === 2 ? [3, 2, 1, 0] : [0, 1, 2, 3];
                 const traverseCols = direction === 1 ? [3, 2, 1, 0] : [0, 1, 2, 3];
 
-                // Resetear estado de combinación
+                // Resetear combinaciones previas
                 for (let r = 0; r < this.size; r++) {
                     for (let c = 0; c < this.size; c++) {
                         if (this.board[r][c]) this.board[r][c].isMerged = false;
@@ -367,10 +370,10 @@
                                 this.score += tile.value * 2;
                                 tile.row = nextRow;
                                 tile.col = nextCol;
-                                tile.updatePosition();
+                                tile.updatePosition(); // Se desliza hacia su objetivo
                                 
                                 const oldTile = tile;
-                                setTimeout(() => oldTile.destroy(), 100);
+                                setTimeout(() => oldTile.destroy(), 120); // Se elimina tras terminar la animación
                                 
                                 this.board[r][c] = null;
                                 moved = true;
@@ -378,7 +381,7 @@
                                 this.board[currRow][currCol] = tile;
                                 tile.row = currRow;
                                 tile.col = currCol;
-                                tile.updatePosition();
+                                tile.updatePosition(); // Deslizamiento suave a casilla vacía
                                 this.board[r][c] = null;
                                 moved = true;
                             }
