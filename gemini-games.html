@@ -122,7 +122,6 @@
             font-size: 2rem;
             font-weight: bold;
             color: #0f172a;
-            /* Suaviza el movimiento al cambiar top/left */
             transition: top 0.1s ease-in-out, left 0.1s ease-in-out, transform 0.1s ease-in-out; 
             transform: scale(1);
         }
@@ -225,6 +224,41 @@
     </div>
 
     <script>
+        class Tile {
+            constructor(row, col, value) {
+                this.row = row;
+                this.col = col;
+                this.value = value;
+                this.element = this.createDOMElement();
+                this.isMerged = false;
+            }
+
+            createDOMElement() {
+                const element = document.createElement('div');
+                element.className = `tile tile-${this.value} tile-new`;
+                element.textContent = this.value;
+                this.updatePosition(element);
+                return element;
+            }
+
+            updatePosition(element = this.element) {
+                const isMobile = window.innerWidth <= 768;
+                const gap = isMobile ? 8 : 12;
+                element.style.top = `calc(${gap}px + ${this.row} * ((100% - ${(5) * gap}px) / 4 + ${gap}px))`;
+                element.style.left = `calc(${gap}px + ${this.col} * ((100% - ${(5) * gap}px) / 4 + ${gap}px))`;
+            }
+
+            updateValue(newValue) {
+                this.value = newValue;
+                this.element.textContent = newValue;
+                this.element.className = `tile tile-${newValue} tile-merged`;
+            }
+
+            destroy() {
+                this.element.remove();
+            }
+        }
+
         class Game2048 {
             constructor() {
                 this.gridContainer = document.getElementById('grid-container');
@@ -235,7 +269,7 @@
                 this.retryBtn = document.getElementById('retry-btn');
                 
                 this.size = 4;
-                this.board = [];
+                this.board = Array(this.size).fill(null).map(() => Array(this.size).fill(null));
                 this.score = 0;
                 this.bestScore = localStorage.getItem('garuda-propiedades-2048-best') || 0;
                 
@@ -246,65 +280,37 @@
             }
 
             setupGame() {
-                this.board = Array(this.size).fill(null).map(() => Array(this.size).fill(0));
+                for (let r = 0; r < this.size; r++) {
+                    for (let c = 0; c < this.size; c++) {
+                        if (this.board[r][c]) {
+                            this.board[r][c].destroy();
+                        }
+                    }
+                }
+                this.board = Array(this.size).fill(null).map(() => Array(this.size).fill(null));
                 this.score = 0;
                 this.scoreDisplay.textContent = 0;
                 this.gameMessage.style.display = 'none';
                 
-                this.clearTilesDOM();
                 this.addRandomTile();
                 this.addRandomTile();
-                this.updateDOM();
-            }
-
-            clearTilesDOM() {
-                const tiles = this.gridContainer.querySelectorAll('.tile');
-                tiles.forEach(tile => tile.remove());
             }
 
             addRandomTile() {
                 const emptyCells = [];
                 for (let r = 0; r < this.size; r++) {
                     for (let c = 0; c < this.size; c++) {
-                        if (this.board[r][c] === 0) {
+                        if (!this.board[r][c]) {
                             emptyCells.push({r, c});
                         }
                     }
                 }
                 if (emptyCells.length > 0) {
                     const {r, c} = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-                    this.board[r][c] = Math.random() < 0.9 ? 2 : 4;
-                }
-            }
-
-            updateDOM() {
-                this.clearTilesDOM();
-                const isMobile = window.innerWidth <= 768;
-                const gap = isMobile ? 8 : 12;
-                
-                for (let r = 0; r < this.size; r++) {
-                    for (let c = 0; c < this.size; c++) {
-                        const value = this.board[r][c];
-                        if (value > 0) {
-                            const tile = document.createElement('div');
-                            tile.className = `tile tile-${value} tile-new`;
-                            tile.textContent = value;
-                            tile.style.top = `calc(${gap}px + ${r} * ((100% - ${(this.size + 1) * gap}px) / 4 + ${gap}px))`;
-                            tile.style.left = `calc(${gap}px + ${c} * ((100% - ${(this.size + 1) * gap}px) / 4 + ${gap}px))`;
-                            this.gridContainer.appendChild(tile);
-                        }
-                    }
-                }
-                
-                this.scoreDisplay.textContent = this.score;
-                if (this.score > this.bestScore) {
-                    this.bestScore = this.score;
-                    localStorage.setItem('garuda-propiedades-2048-best', this.bestScore);
-                    this.bestScoreDisplay.textContent = this.bestScore;
-                }
-
-                if (this.isGameOver()) {
-                    this.gameMessage.style.display = 'flex';
+                    const value = Math.random() < 0.9 ? 2 : 4;
+                    const tile = new Tile(r, c, value);
+                    this.board[r][c] = tile;
+                    this.gridContainer.appendChild(tile.element);
                 }
             }
 
@@ -321,19 +327,24 @@
                 const traverseRows = direction === 2 ? [3, 2, 1, 0] : [0, 1, 2, 3];
                 const traverseCols = direction === 1 ? [3, 2, 1, 0] : [0, 1, 2, 3];
 
-                let mergedThisTurn = Array(this.size).fill(null).map(() => Array(this.size).fill(false));
+                // Resetear estado de combinación
+                for (let r = 0; r < this.size; r++) {
+                    for (let c = 0; c < this.size; c++) {
+                        if (this.board[r][c]) this.board[r][c].isMerged = false;
+                    }
+                }
 
                 for (let r of traverseRows) {
                     for (let c of traverseCols) {
-                        const val = this.board[r][c];
-                        if (val !== 0) {
+                        const tile = this.board[r][c];
+                        if (tile) {
                             let currRow = r;
                             let currCol = c;
                             
                             while (
                                 currRow + vector.x >= 0 && currRow + vector.x < this.size &&
                                 currCol + vector.y >= 0 && currCol + vector.y < this.size &&
-                                this.board[currRow + vector.x][currCol + vector.y] === 0
+                                !this.board[currRow + vector.x][currCol + vector.y]
                             ) {
                                 currRow += vector.x;
                                 currCol += vector.y;
@@ -345,17 +356,30 @@
                             if (
                                 nextRow >= 0 && nextRow < this.size &&
                                 nextCol >= 0 && nextCol < this.size &&
-                                this.board[nextRow][nextCol] === val &&
-                                !mergedThisTurn[nextRow][nextCol]
+                                this.board[nextRow][nextCol] &&
+                                this.board[nextRow][nextCol].value === tile.value &&
+                                !this.board[nextRow][nextCol].isMerged
                             ) {
-                                this.board[nextRow][nextCol] = val * 2;
-                                this.score += val * 2;
-                                this.board[r][c] = 0;
-                                mergedThisTurn[nextRow][nextCol] = true;
+                                const targetTile = this.board[nextRow][nextCol];
+                                targetTile.updateValue(tile.value * 2);
+                                targetTile.isMerged = true;
+                                
+                                this.score += tile.value * 2;
+                                tile.row = nextRow;
+                                tile.col = nextCol;
+                                tile.updatePosition();
+                                
+                                const oldTile = tile;
+                                setTimeout(() => oldTile.destroy(), 100);
+                                
+                                this.board[r][c] = null;
                                 moved = true;
                             } else if (currRow !== r || currCol !== c) {
-                                this.board[currRow][currCol] = val;
-                                this.board[r][c] = 0;
+                                this.board[currRow][currCol] = tile;
+                                tile.row = currRow;
+                                tile.col = currCol;
+                                tile.updatePosition();
+                                this.board[r][c] = null;
                                 moved = true;
                             }
                         }
@@ -364,16 +388,24 @@
 
                 if (moved) {
                     this.addRandomTile();
-                    this.updateDOM();
+                    this.scoreDisplay.textContent = this.score;
+                    if (this.score > this.bestScore) {
+                        this.bestScore = this.score;
+                        localStorage.setItem('garuda-propiedades-2048-best', this.bestScore);
+                        this.bestScoreDisplay.textContent = this.bestScore;
+                    }
+                    if (this.isGameOver()) {
+                        this.gameMessage.style.display = 'flex';
+                    }
                 }
             }
 
             isGameOver() {
                 for (let r = 0; r < this.size; r++) {
                     for (let c = 0; c < this.size; c++) {
-                        if (this.board[r][c] === 0) return false;
-                        if (r < this.size - 1 && this.board[r][c] === this.board[r + 1][c]) return false;
-                        if (c < this.size - 1 && this.board[r][c] === this.board[r][c + 1]) return false;
+                        if (!this.board[r][c]) return false;
+                        if (r < this.size - 1 && this.board[r + 1][c] && this.board[r][c].value === this.board[r + 1][c].value) return false;
+                        if (c < this.size - 1 && this.board[r][c + 1] && this.board[r][c].value === this.board[r][c + 1].value) return false;
                     }
                 }
                 return true;
@@ -382,7 +414,7 @@
             initEvents() {
                 window.addEventListener('keydown', (e) => {
                     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 's', 'a', 'd'].map(k => k.toLowerCase()).includes(e.key.toLowerCase())) {
-                        e.preventDefault(); // Evita scroll molesto en la web de Garuda Propiedades
+                        e.preventDefault();
                     }
                     if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') this.move(0);
                     else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') this.move(1);
@@ -418,7 +450,14 @@
 
                 this.restartBtn.addEventListener('click', () => this.setupGame());
                 this.retryBtn.addEventListener('click', () => this.setupGame());
-                window.addEventListener('resize', () => this.updateDOM());
+                
+                window.addEventListener('resize', () => {
+                    for (let r = 0; r < this.size; r++) {
+                        for (let c = 0; c < this.size; c++) {
+                            if (this.board[r][c]) this.board[r][c].updatePosition();
+                        }
+                    }
+                });
             }
         }
 
