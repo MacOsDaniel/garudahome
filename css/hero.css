@@ -290,7 +290,7 @@ header::after{
 
 
 
-}
+}}
 
 @media(max-width:650px){
 
@@ -349,4 +349,5 @@ header{
     background:#d4af37;
     color:#111;
     font-weight:700;
+}
 }
