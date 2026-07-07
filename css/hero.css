@@ -317,3 +317,23 @@ header{
 }
 
 }
+
+.hero-container{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    align-items:center;
+    gap:40px;
+    text-align:left;
+    width:100%;
+}
+
+.hero-content{
+    z-index:2;
+}
+
+.hero-visual{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:2;
+}
