@@ -194,6 +194,8 @@ header::after{
 
     text-transform:uppercase;
 
+   text-align:center;
+
 }
 
 .hero-status::before{
@@ -286,7 +288,7 @@ header::after{
 
     font-size:1.1rem;
 
-}
+
 
 }
 
@@ -299,9 +301,11 @@ header{
 }
 
 .hero-logo{
-
-    width:145px;
-
+    width:auto;
+    height:45vh;
+    max-height:420px;
+    min-height:220px;
+    object-fit:contain;
 }
 
 .hero-title{
@@ -311,22 +315,22 @@ header{
 }
 
 .hero-subtitle{
+    max-width:760px;
+    margin:auto;
+    line-height:1.8;
+    font-size:1.25rem;
 
-    font-size:1rem;
-
-    line-height:1.7;
-
-}
 
 }
 
 .hero-container{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
     align-items:center;
-    gap:40px;
-    text-align:left;
-    width:100%;
+    text-align:center;
+    gap:30px;
+    min-height:100vh;
 }
 
 .hero-content{
@@ -338,4 +342,11 @@ header{
     justify-content:center;
     align-items:center;
     z-index:2;
+}
+
+
+.cta-btn{
+    background:#d4af37;
+    color:#111;
+    font-weight:700;
 }
