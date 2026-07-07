@@ -1,0 +1,223 @@
+/* ==========================================================
+   GARUDA HOME
+   Alpha 0.2
+
+   responsive.css
+==========================================================*/
+
+/*=========================================================
+ TABLETS
+=========================================================*/
+
+@media (max-width:1100px){
+
+nav{
+
+    padding:0 35px;
+
+}
+
+.hero-title{
+
+    font-size:3.3rem;
+
+}
+
+.features-grid{
+
+    grid-template-columns:
+    repeat(2,1fr);
+
+}
+
+}
+
+/*=========================================================
+ TABLETS PEQUEÑAS
+=========================================================*/
+
+@media (max-width:900px){
+
+.logo-img{
+
+    height:58px;
+
+}
+
+header{
+
+    min-height:80vh;
+
+}
+
+.hero-logo{
+
+    width:170px;
+
+}
+
+.hero-title{
+
+    font-size:2.9rem;
+
+}
+
+.hero-subtitle{
+
+    width:90%;
+
+    font-size:1.05rem;
+
+}
+
+.features-grid{
+
+    grid-template-columns:1fr;
+
+}
+
+iframe{
+
+    height:560px;
+
+}
+
+}
+
+/*=========================================================
+ MÓVILES
+=========================================================*/
+
+@media (max-width:768px){
+
+nav{
+
+    height:72px;
+
+    padding:0 20px;
+
+}
+
+.nav-links{
+
+    display:none;
+
+}
+
+.logo-img{
+
+    height:52px;
+
+}
+
+.hero-logo{
+
+    width:135px;
+
+}
+
+.hero-title{
+
+    font-size:2.2rem;
+
+    letter-spacing:2px;
+
+}
+
+.hero-subtitle{
+
+    font-size:1rem;
+
+    line-height:1.7;
+
+}
+
+.cta-btn{
+
+    width:100%;
+
+    max-width:320px;
+
+}
+
+.game-description{
+
+    width:95%;
+
+}
+
+iframe{
+
+    height:520px;
+
+}
+
+footer{
+
+    padding:30px 20px;
+
+}
+
+}
+
+/*=========================================================
+ TELÉFONOS PEQUEÑOS
+=========================================================*/
+
+@media (max-width:480px){
+
+header{
+
+    padding-top:100px;
+
+}
+
+.hero-logo{
+
+    width:115px;
+
+}
+
+.hero-title{
+
+    font-size:1.8rem;
+
+}
+
+.hero-subtitle{
+
+    font-size:.95rem;
+
+}
+
+.section-title{
+
+    font-size:1.7rem;
+
+}
+
+.feature-card{
+
+    padding:28px 22px;
+
+}
+
+.feature-icon{
+
+    font-size:38px;
+
+}
+
+iframe{
+
+    height:460px;
+
+}
+
+.game-label{
+
+    font-size:.75rem;
+
+}
+
+}
